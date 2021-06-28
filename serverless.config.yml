@@ -1,0 +1,9 @@
+DynamoDb:
+  AuctionsTable:
+    name: AuctionsTable-${self:provider.stage}
+common:
+  region: ap-south-1
+  mailQueue:
+    name: MailQueue-${self:provider.stage}
+    arn: arn:aws:sqs:#{AWS::Region}:#{AWS::AccountId}:${self:custom.common.mailQueue.name}
+    url: https://sqs.#{AWS::Region}.amazonaws.com/#{AWS::AccountId}/${self:custom.common.mailQueue.name}

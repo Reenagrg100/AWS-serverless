@@ -1,0 +1,29 @@
+service:
+  name: notification-service
+
+plugins:
+  - serverless-bundle
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 256
+  stage: ${opt:stage, 'dev'}
+  region: ${self:custom.common.region}
+  iamRoleStatements:
+    - ${file(iam/SendMailIAM.yml):SendMailIAM} #add ses persmission to send email
+    - ${file(iam/MailQueueIAM.yml):MailQueueIAM} #add sqs persmission to receive message
+
+functions:
+  sendMail:
+    handler: src/handlers/sendMail.handler
+    events:
+      - sqs:
+          arn: ${self:custom.common.mailQueue.arn}
+          batchSize: 1 #by-default it's 10, batchSize means no of simultaneous messages that can be processed from the queue
+
+custom:
+  bundle:
+    linting: false
+  common: ${file(../../serverless.config.yml):common}

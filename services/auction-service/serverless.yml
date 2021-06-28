@@ -1,0 +1,66 @@
+# some content of this file is generated from the template we used while creating this service.
+
+service: auction-service #this will be used in the deployment of the service (means in cfn stack name)
+
+# no config needed for these plugins from our side.
+plugins:
+  - serverless-bundle
+  - serverless-pseudo-parameters
+custom:
+  common: ${file(../../serverless.config.yml):common}
+  DynamoDb: ${file(../../serverless.config.yml):DynamoDb}
+  AuctionsTable:
+    name: !ImportValue ${self:custom.DynamoDb.AuctionsTable.name}
+    arn: arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/${self:custom.DynamoDb.AuctionsTable.name}
+
+# provider info like here we are using aws as the provider
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 256 # memory that all are lambdas will take, we can set-it at function level also or here globally
+  stage: ${opt:stage, 'dev'} # this is the interpolation syntax, 2nd argument is the default value of first variable. opt stands for option. we can pass this parameter during deployment i.e like (sls deploy --stage dev)
+  region: ap-south-1
+
+  environment:
+    AUCTIONS_TABLE: ${self:custom.DynamoDb.AuctionsTable.name}
+    MAIL_QUEUE_URL: ${self:custom.common.mailQueue.url}
+
+  # this will be appended with the role created by sls. Ideally this should be defined for each lambda separately to make it more secure
+  iamRoleStatements:
+    - ${file(iam/DynamoDbIAM.yml):DynamoDbIAM}
+    - ${file(iam/MailQueueIAM.yml):MailQueueIAM} #add sqs persmission to send message
+
+#lambda functions
+functions:
+  createAuction:
+    handler: src/handlers/createAuction.handler
+    events:
+      - http: #creates the rest api
+          method: POST
+          path: /auction #resource name
+
+  getAuctions:
+    handler: src/handlers/getAuctions.handler
+    events:
+      - http:
+          method: GET
+          path: /auctions
+
+  getAuction:
+    handler: src/handlers/getAuction.handler
+    events:
+      - http:
+          method: GET
+          path: /auction/{id}
+
+  placeBid:
+    handler: src/handlers/placeBid.handler
+    events:
+      - http:
+          method: PATCH
+          path: /auction/{id}/bid
+
+  processAuctions:
+    handler: src/handlers/processAuctions.handler
+    # events:
+    #   - schedule: rate(1 minute) # means runs every minute
