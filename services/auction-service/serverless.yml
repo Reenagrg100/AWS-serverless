@@ -7,6 +7,8 @@ plugins:
   - serverless-bundle
   - serverless-pseudo-parameters
 custom:
+  bundle:
+    linting: false
   common: ${file(../../serverless.config.yml):common}
   DynamoDb: ${file(../../serverless.config.yml):DynamoDb}
   AuctionsTable:
@@ -24,11 +26,13 @@ provider:
   environment:
     AUCTIONS_TABLE: ${self:custom.DynamoDb.AuctionsTable.name}
     MAIL_QUEUE_URL: ${self:custom.common.mailQueue.url}
+    AUCTIONS_BUCKET_NAME: ${self:custom.common.auctionsBucket.name}
 
   # this will be appended with the role created by sls. Ideally this should be defined for each lambda separately to make it more secure
   iamRoleStatements:
     - ${file(iam/DynamoDbIAM.yml):DynamoDbIAM}
     - ${file(iam/MailQueueIAM.yml):MailQueueIAM} #add sqs persmission to send message
+    - ${file(iam/AuctionsBucketIAM.yml):AuctionsBucketIAM} #add permission to put object on s3
 
 #lambda functions
 functions:
@@ -59,6 +63,13 @@ functions:
       - http:
           method: PATCH
           path: /auction/{id}/bid
+
+  uploadAuctionPicture:
+    handler: src/handlers/uploadAuctionPicture.handler
+    events:
+      - http:
+          method: PATCH
+          path: /auction/{id}/picture
 
   processAuctions:
     handler: src/handlers/processAuctions.handler

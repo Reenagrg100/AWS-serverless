@@ -5,6 +5,7 @@ import commonMiddleware from "../lib/commonMiddleware";
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
 
 export async function getAuctionById(id) {
+	console.log("Get auction :", id);
 	let auction;
 	try {
 		// here we are querying based on partition key i.e id
