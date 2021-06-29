@@ -30,25 +30,26 @@ function processAuctions(event, context) {
           closePromises = auctionsToClose.map(function (auction) {
             return (0, _closeAuctions.closeAuctions)(auction);
           });
-          _context.next = 9;
+          console.log("Both seller and bidder are notified through an email...");
+          _context.next = 10;
           return regeneratorRuntime.awrap(Promise.all(closePromises));
 
-        case 9:
+        case 10:
           return _context.abrupt("return", {
             closed: closePromises.length
           });
 
-        case 12:
-          _context.prev = 12;
+        case 13:
+          _context.prev = 13;
           _context.t0 = _context["catch"](1);
           throw new _httpErrors["default"].InternalServerError(_context.t0);
 
-        case 15:
+        case 16:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[1, 12]]);
+  }, null, null, [[1, 13]]);
 }
 
 var handler = processAuctions;

@@ -22,51 +22,54 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "d
 var dynamoDb = new _awsSdk["default"].DynamoDB.DocumentClient();
 
 function placeBid(event, context) {
-  var id, amount, params, auction, result, updatedAuction;
+  var id, amount, bidder, params, auction, result, updatedAuction;
   return regeneratorRuntime.async(function placeBid$(_context) {
     while (1) {
       switch (_context.prev = _context.next) {
         case 0:
           id = event.pathParameters.id;
           amount = event.body.amount;
+          bidder = "reenagrg100@gmail.com"; //TODO: static for now, can be fetched from authorizer later on
+
           params = {
             TableName: process.env.AUCTIONS_TABLE,
             Key: {
               id: id
             },
-            UpdateExpression: "set highestBid.amount=:amount",
+            UpdateExpression: "set highestBid.amount =:amount, highestBid.bidder = :bidder",
             ExpressionAttributeValues: {
-              ":amount": amount
+              ":amount": amount,
+              ":bidder": bidder
             },
             ReturnValues: "ALL_NEW"
           };
-          _context.next = 5;
+          _context.next = 6;
           return regeneratorRuntime.awrap((0, _getAuction.getAuctionById)(id));
 
-        case 5:
+        case 6:
           auction = _context.sent;
 
           if (!(amount <= auction.highestBid.amount)) {
-            _context.next = 8;
+            _context.next = 9;
             break;
           }
 
           throw new _httpErrors["default"].Forbidden("Your bid amount must be higher than ".concat(auction.highestBid.amount, "..."));
 
-        case 8:
+        case 9:
           if (!(auction.status === "CLOSED")) {
-            _context.next = 10;
+            _context.next = 11;
             break;
           }
 
           throw new _httpErrors["default"].Forbidden("You cannot bid on closed auctions...");
 
-        case 10:
-          _context.prev = 10;
-          _context.next = 13;
+        case 11:
+          _context.prev = 11;
+          _context.next = 14;
           return regeneratorRuntime.awrap(dynamoDb.update(params).promise());
 
-        case 13:
+        case 14:
           result = _context.sent;
           updatedAuction = result.Attributes;
           console.log("Update result:", updatedAuction);
@@ -75,18 +78,18 @@ function placeBid(event, context) {
             body: JSON.stringify(updatedAuction)
           });
 
-        case 19:
-          _context.prev = 19;
-          _context.t0 = _context["catch"](10);
+        case 20:
+          _context.prev = 20;
+          _context.t0 = _context["catch"](11);
           console.info("Error:", _context.t0);
           throw new _httpErrors["default"].InternalServerError(_context.t0);
 
-        case 23:
+        case 24:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[10, 19]]);
+  }, null, null, [[11, 20]]);
 }
 
 var handler = (0, _commonMiddleware["default"])(placeBid).use((0, _validator["default"])({

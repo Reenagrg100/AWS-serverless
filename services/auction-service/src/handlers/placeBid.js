@@ -10,13 +10,16 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
 async function placeBid(event, context) {
 	const { id } = event.pathParameters;
 	const { amount } = event.body;
+	const bidder = "reenagrg100@gmail.com"; //TODO: static for now, can be fetched from authorizer later on
 
 	const params = {
 		TableName: process.env.AUCTIONS_TABLE,
 		Key: { id },
-		UpdateExpression: "set highestBid.amount=:amount",
+		UpdateExpression:
+			"set highestBid.amount =:amount, highestBid.bidder = :bidder",
 		ExpressionAttributeValues: {
 			":amount": amount,
+			":bidder": bidder,
 		},
 		ReturnValues: "ALL_NEW",
 	};

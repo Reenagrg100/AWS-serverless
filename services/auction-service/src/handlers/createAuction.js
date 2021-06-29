@@ -29,6 +29,7 @@ async function createAuction(event, context) {
 				amount: 0,
 			},
 			endingAt: endDate.toISOString(),
+			seller: "reenagrg100@gmail.com", //TODO: static for now, can be fetched from authorizer later on
 		};
 
 		// saving to dynamo db, ( if this lambda doesn't have permission of DDB, then will throw 502 error means AccessDeniedException )

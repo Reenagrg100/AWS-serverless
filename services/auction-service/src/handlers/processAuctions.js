@@ -11,6 +11,7 @@ async function processAuctions(event, context) {
 		const closePromises = auctionsToClose.map((auction) =>
 			closeAuctions(auction),
 		);
+		console.log("Both seller and bidder are notified through an email...");
 		await Promise.all(closePromises);
 		return { closed: closePromises.length };
 	} catch (error) {
